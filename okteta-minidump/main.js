@@ -659,7 +659,7 @@ function init() {
       alternative(
         function(){return this.DataSize.value == 368;},
         { Rva: pointer(uint32(), minidump_thread_context_arm), },
-        "ThreadContextArm64Entry"),
+        "ThreadContextArmEntry"),
       alternative(
         function(){return this.DataSize.value == 912;},
         { Rva: pointer(uint32(), minidump_thread_context_arm64), },
@@ -1070,7 +1070,7 @@ function init() {
     ANDROID: 0x8203,
     PS3: 0x8204,
     NACL: 0x8205,
-    FUCHSIA: 0x8206
+    FUCHSIA: 0x8206,
   };
 
   var minidump_system_info = struct({
@@ -1251,20 +1251,20 @@ function init() {
   var minidump_xstate_config_feature_msc_info = struct({
     SizeOfInfo: uint32(),
     ContextSize: uint32(),
-    enabled_features: flags("XSTATE_FEATURE_FLAG", uint64(), {
-      LEGACY_FLOATING_POINT: 0,
-      LEGACY_SSE: 1,
-      GSSE: 2,
-      AVX: 2,
-      MPX_BNDREGS: 3,
-      MPX_BNDCSR: 4,
-      AVX512_KMASK: 5,
-      AVX512_ZMM_H: 6,
-      AVX512_ZMM: 7,
-      IPT: 8,
-      LWP: 62,
+    EnabledFeatures: flags("XSTATE_FEATURE_FLAG", uint64(), {
+      LEGACY_FLOATING_POINT: 0x0000000000000001,
+      LEGACY_SSE:            0x0000000000000002,
+      GSSE:                  0x0000000000000004,
+      AVX:                   0x0000000000000004,
+      MPX_BNDREGS:           0x0000000000000008,
+      MPX_BNDCSR:            0x0000000000000010,
+      AVX512_KMASK:          0x0000000000000020,
+      AVX512_ZMM_H:          0x0000000000000040,
+      AVX512_ZMM:            0x0000000000000080,
+      IPT:                   0x0000000000000100,
+      LWP:                  "0x4000000000000000",
     }),
-    features: array(minidump_xstate_feature, 64),
+    Features: array(minidump_xstate_feature, 64),
   }).set({
     typeName: "XSTATE_CONFIG_FEATURE_MSC_INFO",
   });
