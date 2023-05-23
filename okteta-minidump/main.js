@@ -455,6 +455,9 @@ function init() {
   });
 
   // MINIDUMP_THREAD_CONTEXT_ARM --------------------------------------------ARM
+  // Would be nice to make this a struct with a
+  // M: enumeration("Mode", bitfield("unsigned", 5), { USR, FIQ, ... }),
+  // but currently Kasten does not allow bitfields in enumerations and flags.
   var minidump_thread_context_arm_cpsr = flags(
     "Current Program Status Register", uint32(),
   {
@@ -467,7 +470,16 @@ function init() {
     M_HYP: 0x0000000a,  // Hypervisor mode (Virtualization Extensions)
     M_UND: 0x0000000b,  // Undef mode (undefined instruction handler)
     M_SYS: 0x0000000f,  // System mode (privileged with user registers)
-    // Reserved 4
+    // Reserved 4, on ARMv7 and earlier was always 1
+    M_USR: 0x00000010,  // User mode
+    M_FIQ: 0x00000011,  // Fast or high priority interrupt mode
+    M_IRQ: 0x00000012,  // Normal or low priority interrupt mode
+    M_SVC: 0x00000013,  // Supervisor mode (software interrupt handler)
+    M_MON: 0x00000016,  // Monitor mode (Secure mode / SMC)
+    M_ABT: 0x00000017,  // Abort mode (memory access violation handler)
+    M_HYP: 0x0000001a,  // Hypervisor mode (Virtualization Extensions)
+    M_UND: 0x0000001b,  // Undef mode (undefined instruction handler)
+    M_SYS: 0x0000001f,  // System mode (privileged with user registers)
     T    : 0x00000020, // Thumb
     F    : 0x00000040, // FIQ mask
     I    : 0x00000080, // IRQ mask
