@@ -1556,24 +1556,46 @@ function init() {
     typeName: "CrashpadInfoList",
   });
 
+  var minidump_crashpad_info_stream_fields = [
+    { name: "Version", type: int32(), size: 4 },
+    { name: "ReportId", type: minidump_guid, size: 16 },
+    { name: "ClientId", type: minidump_guid, size: 16 },
+    { name: "SimpleAnnotationsDataSize", type: uint32(), size: 4 },
+    { name: "SimpleAnnotationsRva",
+      type: pointer(
+        uint32(),
+        minidump_crashpad_simple_string_dictionary).set({
+          updateFunc: point_at_nothing_if_size_is_zero,
+        }),
+      size: 4
+    },
+    { name: "ModuleListDataSize", type: uint32(), size: 4 },
+    { name: "ModuleListRva",
+      type: pointer(uint32(), minidump_crashpad_module_info_list).set({
+          updateFunc: point_at_nothing_if_size_is_zero,
+      }),
+      size: 4
+    },
+    // Older versions of Crashpad did not write the folowing fields.
+    { name: "Reserved", type: uint32(), size: 4 },
+    { name: "AddressMask", type: uint64(), size: 8 },
+  ];
+
   var minidump_crashpad_info_stream = struct({
     Version: int32(),
-    ReportId: minidump_guid,
-    ClientId: minidump_guid,
-    SimpleAnnotationsDataSize: uint32(),
-    SimpleAnnotationsRva: pointer(
-      uint32(),
-      minidump_crashpad_simple_string_dictionary).set({
-        updateFunc: point_at_nothing_if_size_is_zero,
-      }),
-    ModuleListDataSize: uint32(),
-    ModuleListRva: pointer(uint32(), minidump_crashpad_module_info_list).set({
-      updateFunc: point_at_nothing_if_size_is_zero,
-    }),
-    Reserved: uint32(),
-    AddressMask: uint64(),
   }).set({
     typeName: "CrashpadInfo",
+    updateFunc: function(){
+      var children = {};
+      var childEnd = 0;
+      for (var i = 0; i < minidump_crashpad_info_stream_fields.length; ++i) {
+        const child = minidump_crashpad_info_stream_fields[i];
+        childEnd += child.size;
+        if (this.parent.parent.DataSize.value < childEnd) { break; }
+        children[child.name] = child.type;
+      }
+      this.fields = children;
+    },
   });
 
 
