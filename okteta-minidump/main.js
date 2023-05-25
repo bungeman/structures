@@ -217,27 +217,30 @@ function init() {
     typeName: "FXSAVE",
   });
   var minidump_thread_context_x86_eflags = flags("EFLAGS", uint32(), {
-    CF:   0x00000001, // Carry Flag: Carry to or borrow from a dest.
-    R1:   0x00000002, // Reserved, always 1.
-    PF:   0x00000004, // Parity flag: The dest LSB has an even number of 1's.
-    R2:   0x00000008, // Reserved.
-    AF:   0x00000010, // Auxiliary Carry Flag: Used for BCD arithmetic.
-    R3:   0x00000020, // Reserved.
-    ZF:   0x00000040, // Zero Flag: The result an operation is binary zero.
-    SF:   0x00000080, // Sign Flag: The most significant bit of the result.
-    TF:   0x00000100, // Trap Flag: Fault after the next instruction.
-    IF:   0x00000200, // Interrupt Enable Flag: Enable interrupts.
-    DF:   0x00000400, // Direction Flag: String operation direction (0 is up).
-    OF:   0x00000800, // Overflow Flag: The result did not fit in the dest.
-    IOPL: 0x00003000, // I/O Privilege Level: Protected mode ring level.
-    NT:   0x00004000, // Nested Task Flag: A system task used CALL (not JMP).
-    MD:   0x00008000, // Mode Flag: Always 1 (80186/8080 mode).
-    RF:   0x00010000, // Resume Flag: See DR6, DR7. Disables some exceptions.
-    VM:   0x00020000, // Virtual 8086 Mode flag: Makes 80386+ run like 8086.
-    AC:   0x00040000, // Alignment Check / SMAP Access Check
-    VIF:  0x00080000, // Virtual Interrupt Flag
-    VIP:  0x00100000, // Virtual Interrupt Pending
-    ID:   0x00200000, // Able to use CPUID instruction
+    CF:     0x00000001, // Carry Flag: Carry to or borrow from a dest.
+    R1:     0x00000002, // Reserved, always 1.
+    PF:     0x00000004, // Parity flag: The dest LSB has an even number of 1's.
+    R2:     0x00000008, // Reserved.
+    AF:     0x00000010, // Auxiliary Carry Flag: Used for BCD arithmetic.
+    R3:     0x00000020, // Reserved.
+    ZF:     0x00000040, // Zero Flag: The result an operation is binary zero.
+    SF:     0x00000080, // Sign Flag: The most significant bit of the result.
+    TF:     0x00000100, // Trap Flag: Fault after the next instruction.
+    IF:     0x00000200, // Interrupt Enable Flag: Enable interrupts.
+    DF:     0x00000400, // Direction Flag: String operation direction (0 is up).
+    OF:     0x00000800, // Overflow Flag: The result did not fit in the dest.
+    IOPL_0: 0x00000000, // I/O Privilege Level: Protected mode ring level.
+    IOPL_1: 0x00001000,
+    IOPL_2: 0x00002000,
+    IOPL_3: 0x00003000,
+    NT:     0x00004000, // Nested Task Flag: A system task used CALL (not JMP).
+    MD:     0x00008000, // Mode Flag: Always 1 (80186/8080 mode).
+    RF:     0x00010000, // Resume Flag: See DR6, DR7. Disables some exceptions.
+    VM:     0x00020000, // Virtual 8086 Mode flag: Makes 80386+ run like 8086.
+    AC:     0x00040000, // Alignment Check / SMAP Access Check
+    VIF:    0x00080000, // Virtual Interrupt Flag
+    VIP:    0x00100000, // Virtual Interrupt Pending
+    ID:     0x00200000, // Able to use CPUID instruction
   });
   var minidump_thread_context_x86 = struct({
     /* Indicates which parts of this structure are valid. */
@@ -614,12 +617,15 @@ function init() {
       FIZ: 0x00000001,  // Flush denormalized Inputs to Zero
       AH : 0x00000002,  // Alternate Handling (of denormalized floating point)
       NEP: 0x00000004,  // Numeric Extended Precision (Scalar operations affect higher elements in vector registers)
+      // Reserved 3-7
       IOE: 0x00000100,  // Invalid Operations trap Enabled
       DZE: 0x00000200,  // Divide-by-Zero trap Enabled
       OFE: 0x00000400,  // OverFlow trap Enabled
       UFE: 0x00000800,  // UnderFlow trap Enabled
       IXE: 0x00001000,  // IneXact trap Enabled
+      // Reserved 13
       IDE: 0x00004000,  // Input Denormal trap Enabled
+      // Reserved 15
       // Len 16-18
       FZ16:0x00080000,  // Flush denormalized to Zero with 16 bit floats
       // Stride 20-21
@@ -630,6 +636,7 @@ function init() {
       FZ : 0x01000000,  // Flush denormalized to Zero
       DN : 0x02000000,  // Default NaN on NaN propagation
       AHP: 0x04000000,  // Alternative Half-Precision
+      // Reserved 27-31
     }),
     fpsr: flags("Floating-Point Status Register", uint32(), {
       IOC: 0x00000001,  // Invalid Operation Cumulative
@@ -1369,7 +1376,7 @@ function init() {
 
 
   //MemoryInfoListStream: 16--------------------------------------------------16
-  var minudump_memory_info_protection =  flags("Memory Protection", uint32(), {
+  var minidump_memory_info_protection = flags("Memory Protection", uint32(), {
     PAGE_NOACCESS: 0x01,
     PAGE_READONLY: 0x02,
     PAGE_READWRITE: 0x04,
@@ -1388,7 +1395,7 @@ function init() {
   var minidump_memory_info = struct({
     BaseAddress: uint64(),
     AllocationBase: uint64(),
-    AllocationProtect: minudump_memory_info_protection,
+    AllocationProtect: minidump_memory_info_protection,
     __alignment1: uint32(),
     RegionSize: uint64(),
     State: enumeration("State", uint32(), {
@@ -1404,7 +1411,7 @@ function init() {
       //MEM_RESET_UNDO : 0x01000000,
       //MEM_LARGE_PAGES: 0x20000000,
     }),
-    Protect: minudump_memory_info_protection,
+    Protect: minidump_memory_info_protection,
     Type: enumeration("Type", uint32(), {
       MEM_PRIVATE    : 0x00020000,
       MEM_MAPPED     : 0x00040000,
@@ -1576,7 +1583,7 @@ function init() {
       }),
       size: 4
     },
-    // Older versions of Crashpad did not write the folowing fields.
+    // Older versions of Crashpad did not write the following fields.
     { name: "Reserved", type: uint32(), size: 4 },
     { name: "AddressMask", type: uint64(), size: 8 },
   ];
