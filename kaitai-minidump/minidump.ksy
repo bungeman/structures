@@ -114,6 +114,7 @@ types:
         type: b13
       - id: reserved2
         type: u4
+
   minidump_directory_entry:
     -orig-id: MINIDUMP_DIRECTORY_ENTRY
     seq:
@@ -458,6 +459,7 @@ types:
 
 # HandleDataStream 12 --------------------------------------------------------12
   minidump_handle_data_stream:
+    -orig-id: MINIDUMP_HANDLE_DATA_STREAM
     seq:
       - id: size_of_header
         -orig-id: SizeOfHeader
@@ -480,6 +482,7 @@ types:
         repeat: expr
         repeat-expr: number_of_descriptors
   minidump_handle_descriptor:
+    -orig-id: MINIDUMP_HANDLE_DESCRIPTOR_X
     seq:
       - id: handle
         -orig-id: Handle
@@ -820,12 +823,12 @@ types:
         type: b1
       - id: reserved1 #(9, 32]
         type: b23
-      - id: reserve2
+      - id: reserved2
         type: b30 #(32, 62]
       - id: lwp
         -orig-id: LWP #0x4000000000000000
         type: b1
-      - id: reserve3
+      - id: reserved3
         type: b1 #(63, 64]
 
   minidump_xstate_feature:
@@ -890,6 +893,7 @@ types:
       - id: alignment2
         -orig-id: __alignment2
         type: u4
+
   minidump_memory_info_protection:
     seq:
       - id: page_noaccess
@@ -1219,7 +1223,6 @@ types:
         -orig-id: Memory
         type: minidump_location_descriptor('minidump_memory')
 
-#blahlalfh
 # Thread Context X86  -------------------------------------------------------X86
   minidumo_thread_context_x86:
     -orig-id: MINIDUMP_THREAD_CONTEXT_X86
@@ -2511,7 +2514,7 @@ enums:
       id: z
       -orig-id: RC_Z  #0x6000
       doc: toward Zero
-        
+
   minidump_thread_context_arm_cpsr_mode:  # 5 bits
     0x00:
       id: usr
