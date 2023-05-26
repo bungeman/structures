@@ -286,13 +286,14 @@ types:
       - id: cv_signature
         -orig-id: CVSignature
         type: u4
+        enum: minidump_cv_info_type
       - id: info
         type:
           switch-on: cv_signature
           cases:
-            0x3031424e: minidump_cv_info_pdb20 #01BN
-            0x53445352: minidump_cv_info_pdb70 #SDSR
-            0x4270454c: minidump_cv_info_elf   #BpEL
+            'minidump_cv_info_type::pdb20': minidump_cv_info_pdb20
+            'minidump_cv_info_type::pdb70': minidump_cv_info_pdb70
+            'minidump_cv_info_type::elf': minidump_cv_info_elf
   minidump_cv_info_pdb20:
     -orig-id: CVInfoPDB20
     seq:
@@ -325,8 +326,15 @@ types:
   minidump_cv_info_elf:
     -orig-id: CVInfoELF
     seq:
-      - id: signature
-        -orig-id: Signature
+      - id: build_id
+        -orig-id: BuildId
+        size: _parent._parent.data_size - 4
+    instances:
+      # Breakpad tools like stackwalk_minidump truncate the signature and
+      # report it like a GUID. Report this version as well as the actual
+      # build-id.
+      build_uuid:
+        pos: 4
         type: minidump_guid
 
   minidump_image_debug_misc:
@@ -2496,6 +2504,20 @@ enums:
     0x8206:
       id: fuchsia
       -orig-id: FUCHSIA
+
+  minidump_cv_info_type:
+    0x3031424e:
+      id: pdb20
+      -orig-id: CVInfoPDB20
+      doc: 01BN
+    0x53445352:
+      id: pdb70
+      -orig-id: CVInfoPDB70
+      doc: SDSR
+    0x4270454c:
+      id: elf
+      -orig-id: CVInfoELF
+      doc: BpEL
 
   minidump_thread_context_amd64_sse_control_status_rounding_control:
     0x0:

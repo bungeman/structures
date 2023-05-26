@@ -806,7 +806,11 @@ function init() {
 
   var minidump_CVInfo = taggedUnion(
     {
-      CVSignature: uint32(),
+      CVSignature: enumeration("CodeView Record Signature", uint32(), {
+        "CVInfoPDB20": 0x3031424e, /*01BN*/
+        "CVInfoPDB70": 0x53445352, /*SDSR*/
+        "CVInfoELF"  : 0x4270454c, /*BpEL*/
+      }),
     },
     [
       alternative(
@@ -841,7 +845,24 @@ function init() {
       alternative(
         function(){return this.CVSignature.value == 0x4270454c;/*BpEL*/},
         {
-          Signature: minidump_guid,  // Symbol file id
+          Signature: union({
+            BuildId: array(uint8(), function(){
+              const structSize = this.parent.parent.parent.parent.CvRecordDataSize.value
+              return structSize - 4;
+            }).set({
+              toStringFunc: function(){
+                var s = "";
+                for (var i = 0; i < this.length; ++i) {
+                  s += ("00"+this[i].value.toString(16)).slice(-2);
+                }
+                return s;
+              },
+            }),
+            // Breakpad tools like stackwalk_minidump truncate the signature and
+            // report it like a GUID. Report this version as well as the actual
+            // build-id.
+            BuildUuid: minidump_guid,
+          }),
         },
         "CVInfoELF"),
     ],
