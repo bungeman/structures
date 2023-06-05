@@ -128,6 +128,7 @@ types:
       - id: rva
         -orig-id: Rva
         type: u4
+    -webide-representation: "{stream_type:str}"
     instances:
       data:
         io: _root._io
@@ -184,6 +185,7 @@ types:
       - id: thread_context
         -orig-id: ThreadContext
         type: minidump_location_descriptor('minidump_thread_context')
+    -webide-representation: "{thread_id:hex}"
 
 # ModuleListStream 4 ----------------------------------------------------------4
   minidump_module_list:
@@ -236,6 +238,8 @@ types:
         pos: module_name_rva
         type: minidump_string
         if: module_name_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{module_name:str} -o {base_of_image:hex}"
 
   vs_fixed_file_info:
     -orig-id: VS_FIXEDFILEINFO
@@ -329,6 +333,7 @@ types:
       - id: build_id
         -orig-id: BuildId
         size: _parent._parent.data_size - 4
+    -webide-representation: "{build_id:hex}"
     instances:
       # Breakpad tools like stackwalk_minidump truncate the signature and
       # report it like a GUID. Report this version as well as the actual
@@ -464,6 +469,7 @@ types:
         io: _root._io
         pos: csd_version_rva
         type: minidump_string
+        -webide-parse-mode: eager
 
 # HandleDataStream 12 --------------------------------------------------------12
   minidump_handle_data_stream:
@@ -527,11 +533,14 @@ types:
         pos: type_name_rva
         type: minidump_string
         if: type_name_rva > 0
+        -webide-parse-mode: eager
       object_name:
         io: _root._io
         pos: object_name_rva
         type: minidump_string
         if: object_name_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{type_name:str}: {object_name:str}"
 
 # UnloadedModuleListStream 14 ------------------------------------------------14
   minidump_unloaded_module_list:
@@ -578,6 +587,8 @@ types:
         pos: module_name_rva
         type: minidump_string
         if: module_name_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{module_name:str}"
 
 # MiscInfoStream 15 ----------------------------------------------------------15
   minidump_misc_info:
@@ -901,6 +912,7 @@ types:
       - id: alignment2
         -orig-id: __alignment2
         type: u4
+    -webide-representation: "{base_address:hex}[{region_size:hex}] {state:str}"
 
   minidump_memory_info_protection:
     seq:
@@ -973,6 +985,8 @@ types:
         pos: thread_name_rva
         type: minidump_string
         if: thread_name_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{thread_id:hex} {thread_name:str}"
 
 # CrashpadInfoStream 0x43500001---------------------------------------0x43500001
   minidump_crashpad_info_stream:
@@ -1029,11 +1043,14 @@ types:
         pos: key_rva
         type: minidump_utf8_string
         if: key_rva > 0
+        -webide-parse-mode: eager
       value:
         io: _root._io
         pos: value_rva
         type: minidump_utf8_string
         if: value_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{key:str}: {value:str}"
 
   minidump_crashpad_module_info_list:
     seq:
@@ -1120,11 +1137,14 @@ types:
         pos: name_rva
         type: minidump_utf8_string
         if: name_rva > 0
+        -webide-parse-mode: eager
       value:
         io: _root._io
         pos: value_rva
         type: minidump_utf8_string
         if: value_rva > 0
+        -webide-parse-mode: eager
+    -webide-representation: "{name:str}: {value:str}"
 
 # Shared Types  ----------------------------------------------------------------
   minidump_string:
@@ -1137,6 +1157,7 @@ types:
         size: length
         type: str
         encoding: UTF-16
+    -webide-representation: "{buffer:str}"
 
   minidump_utf8_string:
     seq:
@@ -1148,31 +1169,37 @@ types:
       size: length
       type: str
       encoding: UTF-8
+    -webide-representation: "{buffer:str}"
 
   string_utf16:
     seq:
       - id: string
         type: strz
         encoding: UTF-16
+    -webide-representation: "{string:str}"
 
   string_utf8:
     seq:
       - id: string
         type: strz
         encoding: UTF-8
+    -webide-representation: "{string:str}"
 
   minidump_guid:
     seq:
-      - id: data1
-        type: u4
-      - id: data2
-        type: u2
-      - id: data3
-        type: u2
-      - id: data4
-        type: u1
-        repeat: expr
-        repeat-expr: 8
+#      - id: data1
+#        type: u4
+#      - id: data2
+#        type: u2
+#      - id: data3
+#        type: u2
+#      - id: data4
+#        type: u1
+#        repeat: expr
+#        repeat-expr: 8
+      - id: guid
+        size: 16
+    -webide-representation: "{guid:uuid=ms}"
 
   minidump_u16:
     seq:
@@ -1230,6 +1257,7 @@ types:
       - id: memory
         -orig-id: Memory
         type: minidump_location_descriptor('minidump_memory')
+    -webide-representation: "{start_of_memory_range:hex}[{memory.data_size:hex}]"
 
 # Thread Context X86  -------------------------------------------------------X86
   minidumo_thread_context_x86:
